@@ -1,0 +1,223 @@
+КОД СО ВСЕМИ ОБЬЯСНЕНИЯМИ: 
+
+import tkinter as tk
+from tkinter import messagebox, ttk
+import math
+import webbrowser
+
+
+class MechanicalCalculator:
+    @staticmethod
+    def calculate_reaction_forces(force_pos, support_pos1, support_pos2, total_force):
+        a = support_pos2 - force_pos
+        b = force_pos - support_pos1
+        r1 = total_force * a / (a + b)
+        r2 = total_force * b / (a + b)
+        return r1, r2
+
+    @staticmethod
+    def calculate_moment_of_force(force, distance):
+        return force * distance
+
+    @staticmethod
+    def calculate_stress(force, area):
+        return force / area
+
+    @staticmethod
+    def calculate_strain(original_length, deformed_length):
+        return (deformed_length - original_length) / original_length
+
+    @staticmethod
+    def calculate_bending_stress(moment, section_modulus):
+        return moment / section_modulus
+
+    @staticmethod
+    def calculate_acceleration(force, mass):
+        return force / mass
+
+    @staticmethod
+    def calculate_inertia_force(mass, acceleration):
+        return mass * acceleration
+
+    @staticmethod
+    def calculate_oscillation_frequency(stiffness, mass):
+        return (1 / (2 * math.pi)) * math.sqrt(stiffness / mass)
+
+
+def update_example(*args):
+    calc_type = operation_var.get()
+    examples = {
+        "Реакции опор": "Пример: (2.0, 0.0, 5.0, 100.0)\n"
+                        "Значение 1: Позиция силы (м)\n"
+                        "Значение 2: Позиция опоры 1 (м)\n"
+                        "Значение 3: Позиция опоры 2 (м)\n"
+                        "Значение 4: Величина силы (Н)",
+        "Момент силы": "Пример: (100.0, 2.0)\n"
+                       "Значение 1: Сила (Н)\n"
+                       "Значение 2: Расстояние до точки вращения (м)",
+        "Напряжение": "Пример: (500.0, 0.01)\n"
+                      "Значение 1: Сила (Н)\n"
+                      "Значение 2: Площадь сечения (м²)",
+        "Деформация": "Пример: (1.0, 1.001)\n"
+                      "Значение 1: Исходная длина (м)\n"
+                      "Значение 2: Деформированная длина (м)",
+        "Напряжение при изгибе": "Пример: (100.0, 0.005)\n"
+                                 "Значение 1: Изгибающий момент (Н·м)\n"
+                                 "Значение 2: Модуль сечения (м³)",
+        "Ускорение": "Пример: (100.0, 50.0)\n"
+                     "Значение 1: Сила (Н)\n"
+                     "Значение 2: Масса (кг)",
+        "Сила инерции": "Пример: (50.0, 2.0)\n"
+                        "Значение 1: Масса (кг)\n"
+                        "Значение 2: Ускорение (м/с²)",
+        "Частота колебаний": "Пример: (2000.0, 10.0)\n"
+                             "Значение 1: Жесткость (Н/м)\n"
+                             "Значение 2: Масса (кг)"
+    }
+
+    example_label.config(text=examples[calc_type])
+
+    entry1.delete(0, tk.END)
+    entry2.delete(0, tk.END)
+    entry3.delete(0, tk.END)
+    entry4.delete(0, tk.END)
+    result_display.config(state="normal")  # Разблокируем поле результата перед выводом нового результата
+    result_display.delete("1.0", tk.END)
+
+    entries = [entry1, entry2, entry3, entry4]
+    labels = [label1, label2, label3, label4]
+    required_fields = {
+        "Реакции опор": 4,
+        "Момент силы": 2,
+        "Напряжение": 2,
+        "Деформация": 2,
+        "Напряжение при изгибе": 2,
+        "Ускорение": 2,
+        "Сила инерции": 2,
+        "Частота колебаний": 2
+    }
+
+    count = required_fields[calc_type]
+    for i in range(4):
+        if i < count:
+            labels[i].grid()
+            entries[i].grid()
+        else:
+            labels[i].grid_remove()
+            entries[i].grid_remove()
+
+
+def calculate():
+    try:
+        calc_type = operation_var.get()
+
+        # Получаем значения из полей ввода
+        val1 = float(entry1.get()) if entry1.winfo_ismapped() else 0
+        val2 = float(entry2.get()) if entry2.winfo_ismapped() else 0
+        val3 = float(entry3.get()) if entry3.winfo_ismapped() else 0
+        val4 = float(entry4.get()) if entry4.winfo_ismapped() else 0
+
+        result = None
+
+        if calc_type == "Реакции опор":
+            result = MechanicalCalculator.calculate_reaction_forces(val1, val2, val3, val4)
+            result_display.insert(tk.END, f"Реакции: R1={result[0]:.2f} Н, R2={result[1]:.2f} Н\n")
+        elif calc_type == "Момент силы":
+            result = MechanicalCalculator.calculate_moment_of_force(val1, val2)
+            result_display.insert(tk.END, f"Момент силы: {result:.2f} Н·м\n")
+        elif calc_type == "Напряжение":
+            result = MechanicalCalculator.calculate_stress(val1, val2)
+            result_display.insert(tk.END, f"Напряжение: {result:.2f} Па\n")
+        elif calc_type == "Деформация":
+            result = MechanicalCalculator.calculate_strain(val1, val2)
+            result_display.insert(tk.END, f"Деформация: {result:.4f} (без единиц)\n")  # Исправлено
+        elif calc_type == "Напряжение при изгибе":
+            result = MechanicalCalculator.calculate_bending_stress(val1, val2)
+            result_display.insert(tk.END, f"Напряжение при изгибе: {result:.2f} Па\n")
+        elif calc_type == "Ускорение":
+            result = MechanicalCalculator.calculate_acceleration(val1, val2)
+            result_display.insert(tk.END, f"Ускорение: {result:.2f} м/с²\n")
+        elif calc_type == "Сила инерции":
+            result = MechanicalCalculator.calculate_inertia_force(val1, val2)
+            result_display.insert(tk.END, f"Сила инерции: {result:.2f} Н\n")
+        elif calc_type == "Частота колебаний":
+            result = MechanicalCalculator.calculate_oscillation_frequency(val1, val2)
+            result_display.insert(tk.END, f"Частота колебаний: {result:.2f} Гц\n")
+    except ValueError:
+        messagebox.showerror("Ошибка", "Введите корректные числовые значения!")
+    finally:
+        result_display.config(state="disabled")  # Блокируем поле после вывода результата
+
+
+def open_source_code():
+    webbrowser.open("https://github.com/your-repository-link")  # Замените на ваш репозиторий
+
+
+root = tk.Tk()
+root.title("Инженерный калькулятор")
+root.geometry("1000x800")
+root.resizable(False, False)
+
+# Градиентный фон
+gradient_bg = tk.Canvas(root, width=1000, height=800)
+gradient_bg.grid(row=0, column=0)
+
+# Создаём серый фон
+gradient_bg.create_rectangle(0, 0, 1000, 800, fill="lightgray", outline="")
+
+frame = tk.Frame(root, bg="white", bd=5, relief="solid")
+frame.place(relx=0.5, rely=0.5, anchor="center", relwidth=0.8, relheight=0.8)
+
+# Опции для выпадающего меню
+operation_var = tk.StringVar()
+operations = ["Реакции опор", "Момент силы", "Напряжение", "Деформация", "Напряжение при изгибе",
+              "Ускорение", "Сила инерции", "Частота колебаний"]
+
+# Устанавливаем "Реакции опор" по умолчанию
+operation_var.set("Реакции опор")
+
+dropdown_menu = ttk.OptionMenu(frame, operation_var, *operations, command=update_example)
+dropdown_menu.grid(row=0, column=0, columnspan=2, pady=10)
+
+label1 = tk.Label(frame, text="Значение 1:", font=("Arial", 12), bg="white")
+label1.grid(row=1, column=0, pady=10, sticky="e")
+entry1 = tk.Entry(frame, font=("Arial", 12))
+entry1.grid(row=1, column=1, pady=10)
+
+label2 = tk.Label(frame, text="Значение 2:", font=("Arial", 12), bg="white")
+label2.grid(row=2, column=0, pady=10, sticky="e")
+entry2 = tk.Entry(frame, font=("Arial", 12))
+entry2.grid(row=2, column=1, pady=10)
+
+label3 = tk.Label(frame, text="Значение 3:", font=("Arial", 12), bg="white")
+label3.grid(row=3, column=0, pady=10, sticky="e")
+entry3 = tk.Entry(frame, font=("Arial", 12))
+entry3.grid(row=3, column=1, pady=10)
+
+label4 = tk.Label(frame, text="Значение 4:", font=("Arial", 12), bg="white")
+label4.grid(row=4, column=0, pady=10, sticky="e")
+entry4 = tk.Entry(frame, font=("Arial", 12))
+entry4.grid(row=4, column=1, pady=10)
+
+example_label = tk.Label(frame, text="", fg="blue", justify="left", font=("Arial", 12), bg="white")
+example_label.grid(row=5, column=0, columnspan=2)
+
+calculate_button = tk.Button(frame, text="Рассчитать", command=calculate, height=2, width=15, bg="#4CAF50", fg="white",
+                             font=("Arial", 14))
+calculate_button.grid(row=6, column=0, columnspan=2, pady=20)
+
+result_frame = tk.Frame(frame, bd=2, relief="sunken", padx=10, pady=10)
+result_frame.grid(row=7, column=0, columnspan=2, pady=10)
+result_label = tk.Label(result_frame, text="Результат:", font=("Arial", 12))
+result_label.pack()
+result_display = tk.Text(result_frame, height=5, width=50, wrap="word", state="normal", font=("Arial", 14, "italic"))
+result_display.pack()
+
+result_display.config(state="disabled")
+
+source_button = tk.Button(frame, text="Исходный код", command=open_source_code, height=1, width=12, bg="#2196F3",
+                          fg="white", font=("Arial", 12))
+source_button.grid(row=0, column=2, pady=10, sticky="ne")
+
+update_example()  # вызываем функцию обновления примера сразу после старта программы
+root.mainloop()
